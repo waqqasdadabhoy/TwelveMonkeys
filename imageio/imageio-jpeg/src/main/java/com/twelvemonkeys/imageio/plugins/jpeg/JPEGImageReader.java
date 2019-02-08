@@ -371,21 +371,27 @@ public final class JPEGImageReader extends ImageReaderBase {
 
         // We need to apply ICC profile unless the profile is sRGB/default gray (whatever that is)
         // - or only filter out the bad ICC profiles in the JPEGSegmentImageInputStream.
-        else if (delegate.canReadRaster() && (
-                bogusAdobeDCT ||
-                        sourceCSType == JPEGColorSpace.CMYK ||
-                        sourceCSType == JPEGColorSpace.YCCK ||
-                        profile != null && !ColorSpaces.isCS_sRGB(profile) ||
-                        (long) sof.lines * sof.samplesPerLine > Integer.MAX_VALUE ||
-                        !delegate.getImageTypes(0).hasNext() ||
-                        sourceCSType == JPEGColorSpace.YCbCr && getRawImageType(imageIndex) != null)) { // TODO: Issue warning?
-            if (DEBUG) {
-                System.out.println("Reading using raster and extra conversion");
-                System.out.println("ICC color profile: " + profile);
-            }
+        else {
+            try {
+                if (delegate.canReadRaster() && (
+                        bogusAdobeDCT ||
+                                sourceCSType == JPEGColorSpace.CMYK ||
+                                sourceCSType == JPEGColorSpace.YCCK ||
+                                profile != null && !ColorSpaces.isCS_sRGB(profile) ||
+                                (long) sof.lines * sof.samplesPerLine > Integer.MAX_VALUE ||
+                                !delegate.getImageTypes(0).hasNext() ||
+                                sourceCSType == JPEGColorSpace.YCbCr && getRawImageType(imageIndex) != null)) { // TODO: Issue warning?
+                    if (DEBUG) {
+                        System.out.println("Reading using raster and extra conversion");
+                        System.out.println("ICC color profile: " + profile);
+                    }
 
-            // TODO: Possible to optimize slightly, to avoid readAsRaster for non-CMYK and other good types?
-            return readImageAsRasterAndReplaceColorProfile(imageIndex, param, sof, sourceCSType, profile);
+                    // TODO: Possible to optimize slightly, to avoid readAsRaster for non-CMYK and other good types?
+                    return readImageAsRasterAndReplaceColorProfile(imageIndex, param, sof, sourceCSType, profile);
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // just for debugging
+            }
         }
 
         if (DEBUG) {
