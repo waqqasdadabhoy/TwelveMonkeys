@@ -143,8 +143,13 @@ public final class ColorSpaces {
     }
 
     private static byte[] getProfileHeaderWithProfileId(final ICC_Profile profile) {
-        // Get *entire profile data*... :-/
-        byte[] data = profile.getData();
+        byte[] data;
+        try {
+            // Get *entire profile data*... :-/
+            data = profile.getData();
+        } catch (Exception e) {
+            return null;
+        }
 
         // Clear out preferred CMM, platform & creator, as these does not affect the profile in any way
         // - LCMS updates CMM + creator to "lcms" and platform to current platform
